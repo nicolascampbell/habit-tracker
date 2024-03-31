@@ -1,0 +1,55 @@
+/* App.css */
+html,
+body,
+#root,
+.main-content {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+
+  .tab-content {
+    flex-grow: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    max-height: 91%;
+    overflow: scroll;
+    scroll-behavior: smooth;
+  }
+}
+
+.smooth-svg {
+  transition: fill 0.5s ease-out;
+}
+
+.calender-labels {
+  font-weight: 300;
+  font-size: 0.85rem;
+
+
+}
+
+.heat-map-container {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 0.3rem;
+  overflow: scroll;
+  scroll-behavior: smooth;
+
+  .calender-day {
+    cursor: pointer;
+    shape-rendering: geometricPrecision;
+  }
+}
