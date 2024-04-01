@@ -1,30 +1,41 @@
-# React + TypeScript + Vite
+# HabitTracker 
+HabitTracker is a React-based application designed to help users build and track their daily habits. Leveraging the power of Capacitor for cross-platform functionality, users can commit to habits, track their progress, and visualize their consistency through a simple and intuitive interface.
+## Features 
+- **Habit Management**: Add, edit, and archive habits as your goals evolve.
+- **Commit Tracking**: Log daily commits to habits, reinforcing your dedication.
+- **Progress Visualization**: View your commitment history in a heatmap, offering insights into your consistency.
+- **Cross-Platform**: Built with Capacitor, HabitTracker works on web, Android, and iOS platforms.
+## Getting Started 
+### Prerequisites
+Before setting up the project, ensure you have the following installed: 
+- Node.js (v14 or later recommended) 
+- npm (v7 or later) 
+### Installation
+1. Clone the repository:    
+	```bash 
+	git clone https://github.com/yourusername/HabitTracker.git
+	cd HabitTracker
+	```
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Currently, two official plugins are available:
+3. Install the dependencies and run:
+	```bash
+	npm install
+	npm run dev
+	```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+4.  To build the project
+	```bash
+	npm run build
+	```
+### Running on Android/iOS
 
-## Expanding the ESLint configuration
+To run the application on Android or iOS devices, ensure you have the respective development environments set up, then use Capacitor to add the platform and run the application:
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+```bash
+#Sync the build to Ios and android projects
+npx cap sync
+npx cap run android
+# If that didnt work you can open it in android studio
+npx cap open android
 ```
-
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
