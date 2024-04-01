@@ -1,6 +1,7 @@
 // DeviceContext.tsx
 import React from "react";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { Theme } from "@mui/material";
 
 interface DeviceContextType {
   isPhone: boolean;
@@ -19,7 +20,7 @@ export const useDeviceContext = () => {
 export const DeviceProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const isPhone = useMediaQuery((theme) => theme.breakpoints.down('sm'));
+  const isPhone = useMediaQuery((theme:Theme) => theme.breakpoints.down('sm'));
   return (
     <DeviceContext.Provider value={{ isPhone }}>
       {children}

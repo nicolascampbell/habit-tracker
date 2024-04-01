@@ -7,6 +7,9 @@ body,
   padding: 0;
   height: 100%;
   width: 100%;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 body {
@@ -57,7 +60,7 @@ body {
   shape-rendering: geometricPrecision;
 
   &.active {
-    stroke-width: 1;
+    stroke-width: 2;
     stroke: orange;
   }
 }

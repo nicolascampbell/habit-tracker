@@ -3,6 +3,7 @@ import Tooltip from "@mui/material/Tooltip";
 
 
 interface HeatMapProps {
+  //@ts-ignore
   data: DayData[][];
   isLoading: boolean;
 }
@@ -59,7 +60,6 @@ const HeatMap: React.FC<HeatMapProps> = ({ data, isLoading }) => {
                 y={(index + 1) * (cellSize + cellMargin)}
                 dy=".32em"
                 className="calender-labels"
-                fill="slategray"
               >
                 {day}
               </text>
@@ -72,7 +72,6 @@ const HeatMap: React.FC<HeatMapProps> = ({ data, isLoading }) => {
                 x={monthPositions[index] + 30}
                 y="-10"
                 className="calender-labels"
-                fill="slategray"
               >
                 {month}
               </text>

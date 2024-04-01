@@ -12,6 +12,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Stack,
   Unstable_Grid2 as Grid,
 } from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -19,6 +20,7 @@ import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import dayjs, { Dayjs } from "dayjs";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
 import { HabitEditModal } from "../components/EditHabits"; // Adjust the import path as necessary
 import {
   Commit,
@@ -30,6 +32,7 @@ import {
 // @ts-ignore
 import { v4 as uuidv4 } from "uuid";
 import { produce } from "immer";
+import { useHabits } from "../utils/useHabits";
 function getHistoryByDate(
   history: DayDataMap,
   habits: Habit[],
@@ -46,25 +49,29 @@ function getHistoryByDate(
 }
 interface CommitTabProps {
   commitHistory: CommitHistory;
-  setCommitHistory: Function
+  updateCommitHistory: Function;
 }
-const CommitTab: React.FC<CommitTabProps> = ({ commitHistory, setCommitHistory }) => {
+const CommitTab: React.FC<CommitTabProps> = ({
+  commitHistory,
+  updateCommitHistory,
+}) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
-  const [selectedHabit, setSelectedHabit] = useState("");
-  const [habits, setHabits] = useState<Habit[]>([
-    { id: "1", name: "Read a book", archived: false },
-    { id: "2", name: "Exercise", archived: false },
-    { id: "3", name: "Meditation", archived: false },
-  ]);
+  //@ts-ignore
+  const [habits, updateHabits, loading, error]: [Habit[], Function, boolean, any] = useHabits();
+  const [selectedHabit, setSelectedHabit] = useState('')
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
+  React.useEffect(() => {
+    if (habits.length > 0 && selectedHabit === '') {
+      setSelectedHabit(habits[0].id);
+    }
+  }, [habits, selectedHabit]);
   const historyDisplay = React.useMemo(
     () => getHistoryByDate(commitHistory.history, habits, selectedDate),
     [commitHistory, selectedDate],
   );
 
-  const handleDateChange = (date: Dayjs) => {
-    setSelectedDate(date);
+  const handleDateChange = (date: Dayjs | null) => {
+    if (date) setSelectedDate(date);
   };
 
   const handleAddCommit = () => {
@@ -74,8 +81,8 @@ const CommitTab: React.FC<CommitTabProps> = ({ commitHistory, setCommitHistory }
         datetime: selectedDate.toISOString(),
         habitId: selectedHabit,
       };
-      setCommitHistory(
-        produce((draftState: CommitHistory) => {
+      updateCommitHistory(
+        produce(commitHistory, (draftState: CommitHistory) => {
           const dateKey = selectedDate.format("DD.MM.YY");
           if (!draftState.history[dateKey]) {
             draftState.history[dateKey] = {
@@ -84,28 +91,29 @@ const CommitTab: React.FC<CommitTabProps> = ({ commitHistory, setCommitHistory }
               currentHabits: habits.map((habit) => habit.id),
             };
           }
-
-          draftState.history[dateKey].commits.push(newCommit);
+          //@ts-ignore
+          draftState?.history?.[dateKey]?.commits.push(newCommit);
         }),
       );
     }
   };
 
-  const handleDeleteCommit = (index: number, id: string) => {
-    setCommitHistory(
-      produce((draftState: CommitHistory) => {
+  const handleDeleteCommit = (index: number) => {
+    updateCommitHistory(
+      produce(commitHistory, (draftState: CommitHistory) => {
         const dateKey = selectedDate.format("DD.MM.YY");
+        //@ts-ignore
         draftState.history[dateKey].commits.splice(index, 1);
       }),
     );
   };
 
   const handleUpdateHabits = (habits: Habit[]) => {
-    setHabits(habits);
+    updateHabits(habits);
   };
 
   const handleDeleteHabit = (id: string) => {
-    setHabits(
+    updateHabits(
       produce((draft: Habit[]) => {
         let habit = draft.find((habit) => habit.id === id);
         if (habit) habit.archived = true;
@@ -116,13 +124,11 @@ const CommitTab: React.FC<CommitTabProps> = ({ commitHistory, setCommitHistory }
   const toggleEditModal = () => {
     setIsEditModalOpen(!isEditModalOpen);
   };
-  const habitById = (id: string, currentHabits: string[]) =>
-    habits.find((h) => h.id === id)?.name || "";
+  const habitById = (id: string) => habits.find((h) => h.id === id)?.name || "";
   return (
     <Paper
       sx={{
         p: 2,
-        mb: 1,
       }}
     >
       <Grid container xs={12} justifyContent={"center"}>
@@ -136,32 +142,31 @@ const CommitTab: React.FC<CommitTabProps> = ({ commitHistory, setCommitHistory }
           alignItems={"center"}
         >
           <Typography variant="h5" sx={{ my: 2, textAlign: "center" }}>
-            Commit Your Habit
+            Commit your Habit
           </Typography>
-          <Typography variant="h6" sx={{ my: 2, textAlign: "center" }}>
-            What did you do?
+          <Stack direction={'row'} sx={{ width: '100%' }} alignItems={'center'}>
+            <FormControl fullWidth sx={{ m: 1, ml: 0, flexGrow: 2 }}>
+              <InputLabel id="habit-select-label">Habit</InputLabel>
+              <Select
+                labelId="habit-select-label"
+                id="habit-select"
+                value={selectedHabit}
+                label="Habit"
+                onChange={(e) => setSelectedHabit(e.target.value)}
+              >
+                {habits
+                  .filter((habit) => !habit.archived)
+                  .map((habit) => (
+                    <MenuItem key={habit.id} value={habit.id}>
+                      {habit.name}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
             <IconButton onClick={toggleEditModal}>
               <EditIcon />
             </IconButton>
-          </Typography>
-          <FormControl fullWidth sx={{ m: 1, maxWidth: "30ch" }}>
-            <InputLabel id="habit-select-label">Habit</InputLabel>
-            <Select
-              labelId="habit-select-label"
-              id="habit-select"
-              value={selectedHabit}
-              label="Habit"
-              onChange={(e) => setSelectedHabit(e.target.value)}
-            >
-              {habits
-                .filter((habit) => !habit.archived)
-                .map((habit) => (
-                  <MenuItem key={habit.id} value={habit.id}>
-                    {habit.name}
-                  </MenuItem>
-                ))}
-            </Select>
-          </FormControl>
+          </Stack>
           {/* Habit Edit Modal */}
           <HabitEditModal
             open={isEditModalOpen}
@@ -170,42 +175,43 @@ const CommitTab: React.FC<CommitTabProps> = ({ commitHistory, setCommitHistory }
             onUpdateHabits={handleUpdateHabits}
             onDeleteHabit={handleDeleteHabit}
           />
-          <Typography variant="h6" sx={{ my: 2, textAlign: "center" }}>
-            When?
-          </Typography>
+
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
+              sx={{ width: "100%" }}
               label="When?"
               value={selectedDate}
+              format="DD. MMMM YYYY"
               onChange={handleDateChange}
             />
           </LocalizationProvider>
-          <Button variant="contained" sx={{ mt: 2 }} onClick={handleAddCommit}>
+          <Button
+            variant="contained"
+            startIcon={<AddCircleIcon />}
+            sx={{ mt: 2, width: "50%" }}
+            onClick={handleAddCommit}
+          >
             Commit
           </Button>
           <List
             sx={{
               width: "100%",
-              maxWidth: 360,
               bgcolor: "background.paper",
               mt: 2,
               p: 0,
             }}
           >
-            {historyDisplay?.commits.map((commit, index) => (
+            {(historyDisplay?.commits ?? []).map((commit, index) => (
               <ListItem key={commit.id}>
                 <ListItemText
-                  primary={habitById(
-                    commit.habitId,
-                    historyDisplay.currentHabits,
-                  )}
-                  secondary={commit.datetime}
+                  primary={habitById(commit.habitId)}
+                  secondary={dayjs(commit.datetime).format("DD. MMMM YYYY")}
                 />
                 <ListItemSecondaryAction>
                   <IconButton
                     edge="end"
                     aria-label="delete"
-                    onClick={() => handleDeleteCommit(index, commit.id)}
+                    onClick={() => handleDeleteCommit(index)}
                   >
                     <DeleteIcon />
                   </IconButton>

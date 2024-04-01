@@ -1,9 +1,8 @@
 import React from "react";
 import Tooltip from "@mui/material/Tooltip";
-import { DayData, DayDataMap } from "../utils/types";
+import { Commit, DayData, DayDataMap } from "../utils/types";
 interface HeatMapProps {
   history: DayDataMap;
-  isLoading: boolean;
   startDate: Dayjs;
   endDate: Dayjs;
   descending: boolean;
@@ -13,15 +12,13 @@ import dayjs, { Dayjs } from "dayjs";
 import weekday from "dayjs/plugin/weekday";
 import utc from "dayjs/plugin/utc";
 import { Typography } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 dayjs.extend(utc);
 dayjs.extend(weekday);
 dayjs.extend(isoWeek);
 
-function formatDate(datetime: string) {
-  // console.log(datetime, dayjs(datetime).utc(true).format("DD.MM.YY"))
-  return dayjs(datetime).format("DD.MM.YY");
-}
-const TooltipTitle = ({ datetime, commits }) => {
+import { formatDate } from "../utils";
+const TooltipTitle: React.FC<{ datetime: string | undefined, commits: Commit[] | undefined }> = ({ datetime, commits }) => {
   return (
     <React.Fragment>
       <Typography variant="subtitle2">{formatDate(datetime)}</Typography>
@@ -107,21 +104,35 @@ function getMonthsArrayFromDate(
   }
   return monthsArray;
 }
-const isDateInCurrentWeek = (datetime: string): boolean => {
+const isDateInCurrentWeek = (datetime: string | undefined): boolean => {
+  if (!datetime) return false
   const date = dayjs(datetime);
   const now = dayjs();
 
   // Check if the year and week of the year match for the given date and the current date
   return date.isoWeek() === now.isoWeek() && date.year() === now.year();
 };
-function getFillColor(commits: number | null) {
-  if (!commits) return "#ebedf0";
+function getFillColor(commits: number | undefined, defaultColor:string) {
+  if (!commits) return defaultColor;
   if (commits > 20) return "#216e39";
   if (commits > 10) return "#30a14e";
   if (commits > 5) return "#40c463";
   if (commits > 0) return "#9be9a8";
-  return "#ebedf0";
+  return defaultColor
 }
+const cellSize = 26;
+const cellMargin = 6;
+const weekMargin = 4;
+const weeksCount = 52;
+const daysPerWeek = 7;
+const getTwoCharDayNames = () => {
+  const daysOfWeek = Array.from({ length: 7 }, (_, i) =>
+    dayjs()
+      .isoWeekday(i + 1)
+      .format("dd"),
+  );
+  return daysOfWeek;
+};
 const VerticalHeatmap: React.FC<HeatMapProps> = ({
   history,
   startDate,
@@ -129,21 +140,9 @@ const VerticalHeatmap: React.FC<HeatMapProps> = ({
   descending,
 }) => {
   const emptyData = useGenerateEmptyData(startDate, endDate, descending);
-  const cellSize = 20;
-  const cellMargin = 2;
-  const weekMargin = 5;
-  const weeksCount = 52;
-  const daysPerWeek = 7;
-  const getTwoCharDayNames = () => {
-    const daysOfWeek = Array.from({ length: 7 }, (_, i) =>
-      dayjs()
-        .isoWeekday(i + 1)
-        .format("dd"),
-    );
-    return daysOfWeek;
-  };
+  const theme = useTheme()
   const handleGetFillColor = React.useCallback(
-    (commits: number | null): string => getFillColor(commits),
+    (commits: number | undefined, defaultColor:string): string => getFillColor(commits, defaultColor),
     [],
   );
 
@@ -170,6 +169,7 @@ const VerticalHeatmap: React.FC<HeatMapProps> = ({
               x={index * (cellSize + cellMargin)}
               dx=".32em"
               className="calender-labels vertical"
+              fill={theme.palette.text.primary}
             >
               {day}
             </text>
@@ -182,6 +182,7 @@ const VerticalHeatmap: React.FC<HeatMapProps> = ({
               y={monthPositions[index] + 30}
               x="-30"
               className={`calender-labels ${currentMonth === month ? "active" : ""}`}
+              fill={theme.palette.text.primary}
             >
               {month}
             </text>
@@ -199,6 +200,8 @@ const VerticalHeatmap: React.FC<HeatMapProps> = ({
                   }
                   placement="top"
                   arrow
+                  disableFocusListener
+                  enterTouchDelay={200}
                 >
                   <rect
                     className={` smooth-svg calender-day ${isDateInCurrentWeek(day.datetime) ? "active" : ""}`}
@@ -209,7 +212,8 @@ const VerticalHeatmap: React.FC<HeatMapProps> = ({
                     width={cellSize}
                     y={weekIndex * (cellSize + cellMargin + weekMargin) + 10}
                     x={dayIndex * (cellSize + cellMargin)}
-                    fill={handleGetFillColor(commits?.length)}
+                    //@ts-ignore
+                    fill={handleGetFillColor(commits?.length, theme.palette.background.dayBox)}
                     rx="2"
                     ry="2"
                     data-date={day.datetime}

@@ -9,8 +9,8 @@ import {
   Typography,
   Paper,
 } from "@mui/material";
-import InfoIcon from '@mui/icons-material/Info';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
+import InfoIcon from "@mui/icons-material/Info";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
 
 interface SettingsProps {
   mode: "light" | "dark";
@@ -19,12 +19,12 @@ interface SettingsProps {
 
 const Settings: React.FC<SettingsProps> = ({ mode, onToggleMode }) => {
   return (
-    <Paper sx={{ width: '100%', bgcolor: 'background.paper' }}>
-      <Typography variant="h5" sx={{ my: 2, textAlign: 'center' }}>
+    <Paper sx={{ width: "100%", p: 2 }}>
+      <Typography variant="h5" sx={{ my: 2, textAlign: "center" }}>
         Settings
       </Typography>
       <List component="nav" aria-label="settings options">
-        <ListItem>
+        <ListItem onClick={onToggleMode}>
           <ListItemIcon>
             <DarkModeIcon />
           </ListItemIcon>
@@ -35,17 +35,19 @@ const Settings: React.FC<SettingsProps> = ({ mode, onToggleMode }) => {
               onChange={onToggleMode}
               checked={mode === "dark"}
               inputProps={{
-                'aria-labelledby': 'switch-list-label-dark-mode',
+                "aria-labelledby": "switch-list-label-dark-mode",
               }}
             />
           </ListItemSecondaryAction>
         </ListItem>
-        <ListItem >
+        <ListItem>
           <ListItemIcon>
             <InfoIcon />
           </ListItemIcon>
-          <ListItemText primary="About" secondary="Track your habits in commit units. Version 1.0.0" />
-          {/* Implement the action for showing about info here */}
+          <ListItemText
+            primary="About"
+            secondary="Track your habits in commit units. Version 1.0.0"
+          />
         </ListItem>
       </List>
     </Paper>
@@ -53,4 +55,3 @@ const Settings: React.FC<SettingsProps> = ({ mode, onToggleMode }) => {
 };
 
 export default Settings;
-

@@ -1,10 +1,9 @@
 import React from "react";
-import Heatmap from "../components/Heatmap";
 import VerticalHeatmap from "../components/VerticalHeatmap";
 import { Unstable_Grid2 as Grid, Button, Menu, MenuItem } from "@mui/material";
 import { CalendarMonth as CalendarMonthIcon } from "@mui/icons-material";
 import { useDeviceContext } from "../utils/DeviceContext";
-import { CommitHistory, DayData, DayDataMap } from "../utils/types";
+import { CommitHistory, DayDataMap } from "../utils/types";
 import dayjs from "dayjs";
 function getYearsArrayFromHistory(dayDataMap: DayDataMap): string[] {
   const years = Object.keys(dayDataMap).map(dateKey => {
@@ -75,10 +74,11 @@ const CommitHeatMap: React.FC<CommitHeatMapProps> = ({ commitHistory }) => {
       <Grid
         xs={12}
         md={7}
+        m={2}
         display={"flex"}
         justifyContent={"end"}
         alignItems={"center"}
-        maxHeight={50}
+        maxHeight={60}
       >
         <Button
           aria-label="more"

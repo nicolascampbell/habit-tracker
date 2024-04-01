@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Box, CssBaseline, ThemeProvider, Paper } from "@mui/material";
 import BottomNavigation from "@mui/material/BottomNavigation";
 import BottomNavigationAction from "@mui/material/BottomNavigationAction";
-import AddBoxIcon from "@mui/icons-material/AddBox";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { getTheme } from "./theme";
@@ -10,10 +10,16 @@ import { DeviceProvider } from "./utils/DeviceContext";
 import CommitHeatMap from "./views/CommitHeatmap";
 import Settings from "./views/Settings";
 import CommitTab from "./views/CommitTab";
-import dayjs from "dayjs";
 import "./App.scss";
 import { CommitHistory } from "./utils/types";
-const TabContainer = ({ visibility, children, unmount = false }) => {
+import { useCommitHistory } from "./utils/useCommitHistory";
+import { useMode } from "./utils/useMode";
+interface TabContainerProps {
+  visibility: boolean;
+  children: React.ReactNode;
+  unmount?: boolean;
+}
+const TabContainer: React.FC<TabContainerProps> = ({ visibility, children, unmount = false }) => {
   return (
     <Box
       sx={{
@@ -27,12 +33,12 @@ const TabContainer = ({ visibility, children, unmount = false }) => {
   );
 };
 const App: React.FC = () => {
-  const [tab, setTab] = useState("history");
-  const [mode, setMode] = useState<"light" | "dark">("light");
-  const [commitHistory, setCommitHistory] = React.useState<CommitHistory>({
-    history: {},
-    datetime: dayjs().toISOString(),
-  });
+  const [tab, setTab] = useState("add");
+  //@ts-ignore
+  const [mode, setMode]: ["light" | "dark", Function] = useMode()
+
+  //@ts-ignore
+  const [commitHistory, updateCommitHistory, loading, error]: [CommitHistory, Function, boolean, any] = useCommitHistory()
 
   const handleTabChange = (_: React.ChangeEvent<{}>, newTab: string) => {
     setTab(newTab);
@@ -49,7 +55,7 @@ const App: React.FC = () => {
     return () => window.removeEventListener("resize", adjustHeight);
   }, []);
   const toggleMode = () => {
-    setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
+    setMode(mode === "light" ? "dark" : "light");
   };
   const theme = getTheme(mode);
   return (
@@ -70,7 +76,7 @@ const App: React.FC = () => {
             <TabContainer visibility={tab === "add"}>
               <CommitTab
                 commitHistory={commitHistory}
-                setCommitHistory={setCommitHistory}
+                updateCommitHistory={updateCommitHistory}
               />
             </TabContainer>
           </div>
@@ -82,6 +88,7 @@ const App: React.FC = () => {
               <BottomNavigationAction
                 label="Streak"
                 value="history"
+                //@ts-ignore
                 icon={<LocalFireDepartmentIcon color="orange" />}
                 sx={{
                   "&.Mui-selected": {
@@ -92,7 +99,7 @@ const App: React.FC = () => {
               <BottomNavigationAction
                 label="Add Commit"
                 value="add"
-                icon={<AddBoxIcon />}
+                icon={<AddCircleIcon fontSize="large" />}
               />
               <BottomNavigationAction
                 label="Settings"

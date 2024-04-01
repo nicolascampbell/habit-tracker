@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  Dialog,
-  Slide,
+  SwipeableDrawer,
   AppBar,
   Toolbar,
   IconButton,
@@ -11,24 +10,15 @@ import {
   TextField,
   Stack,
   Button,
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import SaveIcon from '@mui/icons-material/Save';
-import AddIcon from '@mui/icons-material/Add';
-import { TransitionProps } from '@mui/material/transitions';
-import { produce } from 'immer';
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import DeleteIcon from "@mui/icons-material/Delete";
+import SaveIcon from "@mui/icons-material/Save";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
 // @ts-ignore
-import { v4 as uuidv4 } from 'uuid';
-const Transition = React.forwardRef(function Transition(
-  props: TransitionProps & {
-    children: React.ReactElement;
-  },
-  ref: React.Ref<unknown>,
-) {
-  return <Slide direction="up" ref={ref} {...props} />;
-});
+import { v4 as uuidv4 } from "uuid";
+import { produce } from "immer";
+
 interface Habit {
   id: string;
   name: string;
@@ -38,46 +28,64 @@ interface HabitEditModalProps {
   open: boolean;
   habits: Habit[];
   onClose: () => void;
-  onDeleteHabit: (habit: string) => void; // Changed to index for precise deletion
-  onUpdateHabits: (editedHabits: Habit[]) => void; // New prop for updating habits
+  onDeleteHabit: Function;
+  onUpdateHabits: Function;
 }
-
 
 export const HabitEditModal: React.FC<HabitEditModalProps> = ({
   open,
   habits,
   onClose,
-  onDeleteHabit,
   onUpdateHabits,
 }) => {
   const [editedHabits, setEditedHabits] = useState<Habit[]>(habits);
 
   const handleAdd = () => {
-    setEditedHabits(produce((draft) => {
-      draft.push({
-        id: uuidv4(),
-        name: ''
-      })
-    }))
+    setEditedHabits(
+      produce((draft) => {
+        draft.push({
+          id: uuidv4(),
+          name: "",
+        });
+      }),
+    );
   };
 
   const handleEditChange = (index: number, value: string) => {
-    setEditedHabits(produce((draft) => {
-      draft[index].name = value
-    }));
+    setEditedHabits(
+      produce((draft) => {
+        draft[index].name = value;
+      }),
+    );
   };
+  const handleDelete = (index: number) => {
+    setEditedHabits(
+      produce((draft) => {
+        draft.splice(index, 1);
+      }),
+    );
+  };
+
   function handleSaveHabits() {
-    onUpdateHabits(editedHabits.filter(habit => habit.name !== ''))
-    onClose()
+    onUpdateHabits(editedHabits.filter((habit) => habit.name !== ""));
+    onClose();
   }
+
   return (
-    <Dialog
-      fullScreen
+    <SwipeableDrawer
+      anchor="bottom"
       open={open}
       onClose={onClose}
-      TransitionComponent={Transition}
+      onOpen={() => {}}
+      disableSwipeToOpen={true}
+      PaperProps={{
+        sx: { borderRadius: "0.8rem 0.8rem  0 0" },
+      }}
+      ModalProps={{
+        keepMounted: true, // Better open performance on mobile.
+      }}
     >
-      <AppBar sx={{ position: 'relative' }}>
+      <AppBar sx={{ position: "relative" }}>
         <Toolbar>
           <IconButton
             edge="start"
@@ -95,13 +103,22 @@ export const HabitEditModal: React.FC<HabitEditModalProps> = ({
           </IconButton>
         </Toolbar>
       </AppBar>
-      <Stack direction={'column'} justifyContent={'start'} alignItems={'center'}>
-        <List>
+      <Stack
+        direction={"column"}
+        justifyContent={"start"}
+        alignItems={"center"}
+        sx={{ mb: 2, width: "100%" }}
+      >
+        <List sx={{ width: "100%" }}>
           {editedHabits.map((habit, index) => (
             <ListItem
               key={index}
               secondaryAction={
-                <IconButton edge="end" aria-label="delete" onClick={() => onDeleteHabit(habit.id)}>
+                <IconButton
+                  edge="end"
+                  aria-label="delete"
+                  onClick={() => handleDelete(index)}
+                >
                   <DeleteIcon />
                 </IconButton>
               }
@@ -118,15 +135,15 @@ export const HabitEditModal: React.FC<HabitEditModalProps> = ({
         </List>
         <Button
           color="primary"
+          variant="contained"
           aria-label="add"
           onClick={handleAdd}
-          sx={{ px: '1rem', borderRadius: '1rem', maxWidth: '3rem' }}
+          sx={{ width: "50%" }}
+          startIcon={<AddCircleIcon />}
         >
-          <AddIcon />
+          Add Habit
         </Button>
-
       </Stack>
-    </Dialog>
+    </SwipeableDrawer>
   );
 };
-
