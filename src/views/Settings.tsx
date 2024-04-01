@@ -19,8 +19,8 @@ interface SettingsProps {
 
 const Settings: React.FC<SettingsProps> = ({ mode, onToggleMode }) => {
   return (
-    <Paper sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
-      <Typography variant="h6" sx={{ my: 2, textAlign: 'center' }}>
+    <Paper sx={{ width: '100%', bgcolor: 'background.paper' }}>
+      <Typography variant="h5" sx={{ my: 2, textAlign: 'center' }}>
         Settings
       </Typography>
       <List component="nav" aria-label="settings options">

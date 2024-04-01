@@ -1,10 +1,6 @@
 import React from "react";
 import Tooltip from "@mui/material/Tooltip";
 
-interface DayData {
-  date: string;
-  commits: number;
-}
 
 interface HeatMapProps {
   data: DayData[][];

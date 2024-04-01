@@ -38,7 +38,9 @@ body {
   font-weight: 300;
   font-size: 0.85rem;
 
-
+  &.active:not(:last-of-type) {
+    font-weight: 400;
+  }
 }
 
 .heat-map-container {
@@ -48,8 +50,14 @@ body {
   overflow: scroll;
   scroll-behavior: smooth;
 
-  .calender-day {
-    cursor: pointer;
-    shape-rendering: geometricPrecision;
+}
+
+.calender-day {
+  cursor: pointer;
+  shape-rendering: geometricPrecision;
+
+  &.active {
+    stroke-width: 1;
+    stroke: orange;
   }
 }

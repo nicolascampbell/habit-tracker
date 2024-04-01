@@ -1,25 +1,35 @@
 import React from "react";
-import generateCommitData from "../commitData"; // Adjust the import path as necessary
 import Heatmap from "../components/Heatmap";
 import VerticalHeatmap from "../components/VerticalHeatmap";
 import { Unstable_Grid2 as Grid, Button, Menu, MenuItem } from "@mui/material";
-import {
-  CalendarMonth,
-  CalendarMonth as CalendarMonthIcon,
-} from "@mui/icons-material";
+import { CalendarMonth as CalendarMonthIcon } from "@mui/icons-material";
 import { useDeviceContext } from "../utils/DeviceContext";
+import { CommitHistory, DayData, DayDataMap } from "../utils/types";
+import dayjs from "dayjs";
+function getYearsArrayFromHistory(dayDataMap: DayDataMap): string[] {
+  const years = Object.keys(dayDataMap).map(dateKey => {
+    return dayjs(dateKey).year()
+  });
 
-interface DayData {
-  date: string;
-  commits: number;
+  const minYear = Math.min(...years);
+
+  const startYear = minYear; // Extract the year from the ISO date string using dayjs
+  const currentYear = dayjs().year(); // Get the current year using dayjs
+
+  const yearsArray: string[] = [];
+  for (let year = startYear; year <= currentYear; year++) {
+    yearsArray.unshift(String(year)); // Add the year as a string to the array
+  }
+
+  return yearsArray;
 }
-
-const CommitHeatMap: React.FC = () => {
-  const [commitData, setCommitData] = React.useState<DayData[][]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
+interface CommitHeatMapProps {
+  commitHistory: CommitHistory;
+}
+const CommitHeatMap: React.FC<CommitHeatMapProps> = ({ commitHistory }) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [selectedYear, setSelectedYear] =
-    React.useState<string>("Past 365 Days");
+  const [selectedYear, setSelectedYear] = React.useState<string>("current");
+
   const { isPhone } = useDeviceContext();
   const open = Boolean(anchorEl);
 
@@ -34,15 +44,26 @@ const CommitHeatMap: React.FC = () => {
     // For the "Past 365 Days", you might need a special handling
   };
 
-  React.useEffect(() => {
-    // Assuming generateCommitData is adjusted to accept year or range
-    generateCommitData().then((data) => {
-      setCommitData(data);
-      setIsLoading(false);
-    });
-  }, [selectedYear]);
+  const timeOptions: string[] = React.useMemo(() => {
+    return getYearsArrayFromHistory(commitHistory.history);
+  }, [commitHistory]);
 
-  const years = ["Past 365 Days", "2023", "2022", "2021"]; // Example years, dynamically generate based on your data
+
+  const [startDate, endDate, descending] = React.useMemo(() => {
+    let startDate,
+      endDate,
+      descending = false;
+    if (selectedYear === "current") {
+      // Last 365 days
+      startDate = dayjs().subtract(365, "days");
+      endDate = dayjs();
+      descending = true;
+    } else {
+      startDate = dayjs(`${selectedYear}-01-01`);
+      endDate = dayjs(`${selectedYear}-12-31`);
+    }
+    return [startDate, endDate, descending];
+  }, [selectedYear]);
 
   return (
     <Grid
@@ -57,6 +78,7 @@ const CommitHeatMap: React.FC = () => {
         display={"flex"}
         justifyContent={"end"}
         alignItems={"center"}
+        maxHeight={50}
       >
         <Button
           aria-label="more"
@@ -64,11 +86,12 @@ const CommitHeatMap: React.FC = () => {
           aria-controls={open ? "long-menu" : undefined}
           aria-expanded={open ? "true" : undefined}
           aria-haspopup="true"
-          color="secondary"
+          color="primary"
+          variant="outlined"
           onClick={handleClick}
           endIcon={<CalendarMonthIcon />}
         >
-          {selectedYear}
+          {selectedYear === 'current' ? 'Past 365 days' : selectedYear}
         </Button>
         <Menu
           id="long-menu"
@@ -76,16 +99,19 @@ const CommitHeatMap: React.FC = () => {
             "aria-labelledby": "long-button",
           }}
           anchorEl={anchorEl}
+          color="primary"
           open={open}
           onClose={() => handleClose(selectedYear)}
-          PaperProps={{
-            style: {
-              maxHeight: 48 * 4.5,
-              width: "20ch",
-            },
-          }}
+
         >
-          {years.map((year) => (
+          <MenuItem
+            key={"till_now"}
+            selected={"current" === selectedYear}
+            onClick={() => handleClose("current")}
+          >
+            Past 365 days
+          </MenuItem>
+          {timeOptions.map((year) => (
             <MenuItem
               key={year}
               selected={year === selectedYear}
@@ -102,11 +128,18 @@ const CommitHeatMap: React.FC = () => {
         display={"flex"}
         justifyContent={"center"}
         alignItems={"center"}
+        pb={2}
       >
         {isPhone ? (
-          <VerticalHeatmap data={commitData} isLoading={isLoading} />
+          <VerticalHeatmap
+            history={commitHistory.history}
+            startDate={startDate}
+            endDate={endDate}
+            descending={descending}
+          />
         ) : (
-          <Heatmap data={commitData} isLoading={isLoading} />
+          // <Heatmap history={selectedHistory} />
+          <div></div>
         )}
       </Grid>
     </Grid>

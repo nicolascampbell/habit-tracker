@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { CssBaseline, ThemeProvider } from "@mui/material";
+import { Box, CssBaseline, ThemeProvider, Paper } from "@mui/material";
 import BottomNavigation from "@mui/material/BottomNavigation";
 import BottomNavigationAction from "@mui/material/BottomNavigationAction";
 import AddBoxIcon from "@mui/icons-material/AddBox";
@@ -9,13 +9,32 @@ import { getTheme } from "./theme";
 import { DeviceProvider } from "./utils/DeviceContext";
 import CommitHeatMap from "./views/CommitHeatmap";
 import Settings from "./views/Settings";
+import CommitTab from "./views/CommitTab";
+import dayjs from "dayjs";
 import "./App.scss";
-
+import { CommitHistory } from "./utils/types";
+const TabContainer = ({ visibility, children, unmount = false }) => {
+  return (
+    <Box
+      sx={{
+        display: visibility ? "block" : "none",
+        width: "100%",
+        height: "100%",
+      }}
+    >
+      {unmount && !visibility ? null : children}
+    </Box>
+  );
+};
 const App: React.FC = () => {
   const [tab, setTab] = useState("history");
   const [mode, setMode] = useState<"light" | "dark">("light");
+  const [commitHistory, setCommitHistory] = React.useState<CommitHistory>({
+    history: {},
+    datetime: dayjs().toISOString(),
+  });
 
-  const handleTabChange = (event: React.ChangeEvent<{}>, newTab: string) => {
+  const handleTabChange = (_: React.ChangeEvent<{}>, newTab: string) => {
     setTab(newTab);
   };
   React.useEffect(() => {
@@ -42,34 +61,46 @@ const App: React.FC = () => {
           style={{ height: "calc(var(--vh, 1vh) * 100)" }}
         >
           <div className="tab-content">
-            {tab === "history" && <CommitHeatMap />}
-            {tab === "settings" && (
+            <TabContainer visibility={tab === "history"} unmount>
+              <CommitHeatMap commitHistory={commitHistory} />
+            </TabContainer>
+            <TabContainer visibility={tab === "settings"}>
               <Settings mode={mode} onToggleMode={toggleMode} />
-            )}
-            {/* Render other components based on the tab */}
+            </TabContainer>
+            <TabContainer visibility={tab === "add"}>
+              <CommitTab
+                commitHistory={commitHistory}
+                setCommitHistory={setCommitHistory}
+              />
+            </TabContainer>
           </div>
-          <BottomNavigation value={tab} onChange={handleTabChange} showLabels>
-            <BottomNavigationAction
-              label="Streak"
-              value="history"
-              icon={<LocalFireDepartmentIcon color="orange" />}
-              sx={{
-                "&.Mui-selected": {
-                  color: "orange",
-                },
-              }}
-            />
-            <BottomNavigationAction
-              label="Add Commit"
-              value="add"
-              icon={<AddBoxIcon />}
-            />
-            <BottomNavigationAction
-              label="Settings"
-              value="settings"
-              icon={<SettingsIcon />}
-            />
-          </BottomNavigation>
+          <Paper
+            sx={{ position: "fixed", bottom: 0, left: 0, right: 0 }}
+            elevation={3}
+          >
+            <BottomNavigation value={tab} onChange={handleTabChange} showLabels>
+              <BottomNavigationAction
+                label="Streak"
+                value="history"
+                icon={<LocalFireDepartmentIcon color="orange" />}
+                sx={{
+                  "&.Mui-selected": {
+                    color: "orange",
+                  },
+                }}
+              />
+              <BottomNavigationAction
+                label="Add Commit"
+                value="add"
+                icon={<AddBoxIcon />}
+              />
+              <BottomNavigationAction
+                label="Settings"
+                value="settings"
+                icon={<SettingsIcon />}
+              />
+            </BottomNavigation>
+          </Paper>
         </div>
       </DeviceProvider>
     </ThemeProvider>
